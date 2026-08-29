@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Web — RMLP</title>
+<meta name="description" content="Connect three words into one web, changing one letter at a time, in as few extra words as possible.">
+<link rel="icon" type="image/svg+xml" href="assets/rmlp-logo-mark.svg">
+
+<!-- RMLP font loading (see rmlp-fonts.html in the brand kit) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Libre+Franklin:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/rmlp-tokens.css">
+<link rel="stylesheet" href="css/word-web.css">
+</head>
+<body>
+<div class="rmlp-root ww-app">
+
+  <header class="ww-header">
+    <img class="ww-logo" src="assets/rmlp-logo-mark.svg" alt="">
+    <h1 class="ww-wordmark">Word Web</h1>
+    <div class="ww-header-actions">
+      <button class="ww-pill" id="how-to-play-btn" type="button">How to play</button>
+      <button class="ww-pill" id="reveal-btn" type="button" disabled>Reveal answer</button>
+    </div>
+  </header>
+  <p class="ww-hint" id="day-label"></p>
+
+  <main class="ww-board">
+    <svg id="graph-svg" class="ww-graph" role="img" aria-label="Word web graph" hidden></svg>
+    <div class="ww-board-loading" id="board-loading">
+      <svg viewBox="0 0 340 200" aria-hidden="true">
+        <circle class="ww-load-dot d1" cx="170" cy="45" r="30" fill="none" stroke="#6E5D4C" stroke-width="1.5" stroke-dasharray="3 5"/>
+        <circle class="ww-load-dot d2" cx="80" cy="145" r="30" fill="none" stroke="#6E5D4C" stroke-width="1.5" stroke-dasharray="3 5"/>
+        <circle class="ww-load-dot d3" cx="260" cy="145" r="30" fill="none" stroke="#6E5D4C" stroke-width="1.5" stroke-dasharray="3 5"/>
+      </svg>
+    </div>
+  </main>
+  <p class="ww-hint" id="board-status" aria-live="polite"></p>
+
+  <section class="ww-entry">
+    <form class="ww-entry-form" id="word-form">
+      <label class="sr-only" for="word-input">Enter a 5-letter word to add to your web</label>
+      <input
+        type="text"
+        id="word-input"
+        class="ww-word-input"
+        maxlength="5"
+        autocomplete="off"
+        autocapitalize="characters"
+        spellcheck="false"
+        placeholder="Type a 5-letter word…"
+        disabled>
+      <button class="ww-btn ww-btn-accent" id="word-submit-btn" type="submit" disabled>Add</button>
+    </form>
+    <p class="ww-entry-feedback" id="entry-feedback" aria-live="polite"></p>
+  </section>
+
+  <div class="ww-stats-row" id="stats-row" hidden>
+    <span class="ww-stat">perfect <b id="perfect-value">–</b></span>
+    <span class="ww-stat">par <b id="par-value">–</b></span>
+    <span class="ww-stat">words <b id="words-value">0</b></span>
+  </div>
+
+  <section class="ww-share-panel" id="share-panel" hidden>
+    <p class="ww-hint">Share your result</p>
+    <div id="share-canvas-wrap"></div>
+    <div class="ww-share-actions">
+      <button class="ww-btn" id="share-copy-image-btn" type="button">Copy image</button>
+      <button class="ww-btn" id="share-copy-text-btn" type="button">Copy text</button>
+      <button class="ww-btn" id="share-download-btn" type="button">Download</button>
+    </div>
+    <p class="ww-share-status" id="share-status"></p>
+  </section>
+
+  <div class="ww-modal-backdrop" id="how-to-play-modal" hidden>
+    <div class="ww-modal ww-tutorial-modal" role="dialog" aria-modal="true" aria-labelledby="how-to-play-title">
+      <button class="ww-modal-close" id="close-modal-btn" type="button" aria-label="Close">&times;</button>
+      <h2 class="sr-only" id="how-to-play-title">How to play Word Web</h2>
+
+      <div id="tutorial-caption" class="ww-tutorial-caption"></div>
+
+      <div class="ww-tutorial-board">
+        <svg id="tutorial-svg" viewBox="0 0 360 270" role="img" aria-label="Tutorial example board"></svg>
+      </div>
+
+      <div class="ww-stats-row">
+        <span class="ww-stat">perfect <b id="tutorial-perfect">4</b></span>
+        <span class="ww-stat">par <b id="tutorial-par">7</b></span>
+        <span class="ww-stat">words <b id="tutorial-words">0</b></span>
+      </div>
+
+      <div class="ww-tutorial-controls">
+        <button class="ww-btn" id="tutorial-prev-btn" type="button">Back</button>
+        <div class="ww-tutorial-dots" id="tutorial-dots"></div>
+        <button class="ww-btn ww-btn-accent" id="tutorial-next-btn" type="button">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ww-modal-backdrop" id="reveal-confirm-modal" hidden>
+    <div class="ww-modal" role="dialog" aria-modal="true" aria-labelledby="reveal-confirm-title">
+      <button class="ww-modal-close" id="reveal-confirm-close-btn" type="button" aria-label="Close">&times;</button>
+      <h2 class="ww-modal-title" id="reveal-confirm-title">Reveal the answer?</h2>
+      <p>This shows the optimal solution and marks today's puzzle <strong>Revealed</strong>. There's no way to try again until tomorrow's puzzle.</p>
+      <div class="ww-modal-actions">
+        <button class="ww-btn" id="reveal-cancel-btn" type="button">Cancel</button>
+        <button class="ww-btn ww-btn-accent" id="reveal-confirm-btn" type="button">Reveal Answer</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="ww-footer">
+  Questions or concerns? <a href="mailto:robertparkinson@shaw.ca">robertparkinson@shaw.ca</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="js/lib/wordgraph.js"></script>
+<script src="js/lib/steiner.js"></script>
+<script src="js/lib/puzzle-generator.js"></script>
+<script src="js/rmlp-share-card.js"></script>
+<script src="js/bubble-theme.js"></script>
+<script src="js/graph-view.js"></script>
+<script src="js/tutorial.js"></script>
+<script src="js/app.js"></script>
+<script data-goatcounter="https://blendletan.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
