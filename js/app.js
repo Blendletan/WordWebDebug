@@ -184,6 +184,13 @@
     var saved = loadPersistedState();
     if (!saved || saved.dayNumber !== info.dayNumber) return;
 
+    // Replaying a saved session adds several nodes back-to-back with no
+    // render in between — batch them so they settle together instead of
+    // each one pinning the last before it ever gets to spread out.
+    var hasWordsToReplay = (saved.submittedWords && saved.submittedWords.length > 0) ||
+      (saved.status === 'revealed' && saved.revealedWords && saved.revealedWords.length > 0);
+    if (hasWordsToReplay) graphView.beginBatch();
+
     (saved.submittedWords || []).forEach(function (idx) {
       var attach = findAttachPoints(idx);
       if (attach.length > 0) {
@@ -212,6 +219,8 @@
     } else {
       checkSolved();
     }
+
+    if (hasWordsToReplay) graphView.endBatch();
   }
 
   function startPuzzle(result, dayNum) {
@@ -341,6 +350,12 @@
     var treeNodes = SteinerSolver.reconstructOptimalTreeK3(graph.adjacency, puzzle.targetIndices);
     var remaining = treeNodes.filter(function (idx) { return !webIndices.has(idx); });
 
+    // Several nodes can land in one go here -- batch them (see
+    // GraphView.beginBatch) so they settle together instead of each one
+    // pinning the last before it ever gets to spread out.
+    var batching = remaining.length > 0;
+    if (batching) graphView.beginBatch();
+
     var guard = 0;
     while (remaining.length && guard++ < 1000) {
       var progressed = false;
@@ -357,6 +372,8 @@
       }
       if (!progressed) break;
     }
+
+    if (batching) graphView.endBatch();
 
     revealed = true;
     els.wordInput.disabled = true;

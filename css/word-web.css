@@ -178,15 +178,21 @@ body {
    before them. Shared between the live page and the tutorial modal. */
 .ww-stats-row {
   display: flex;
-  gap: 20px;
+  gap: 24px;
   flex-wrap: wrap;
+  align-items: baseline;
   font-family: var(--rmlp-font-mono);
-  font-size: var(--rmlp-text-xs);
+  font-size: var(--rmlp-text-sm);
   color: var(--rmlp-ink-muted);
-  margin: var(--rmlp-space-2) 0 var(--rmlp-space-4);
+  margin: var(--rmlp-space-3) 0 var(--rmlp-space-4);
 }
 .ww-stats-row[hidden] { display: none; }
-.ww-stat b { color: var(--rmlp-ink); font-weight: 700; }
+.ww-stat b {
+  color: var(--rmlp-ink);
+  font-weight: 700;
+  font-size: var(--rmlp-text-lg);
+  margin-left: 4px;
+}
 
 /* Modal (shared base for how-to-play and reveal-confirm) */
 .ww-modal-backdrop {

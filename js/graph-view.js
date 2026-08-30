@@ -26,6 +26,7 @@
     this.height = options.height || 480;
     this.idPrefix = options.idPrefix || 'ww';
     this.solved = false;
+    this._batching = false;
 
     var initialTier = BubbleTheme.tierForCount(0);
     this.nodeRadius = initialTier.radius;
@@ -74,6 +75,7 @@
     this.links = [];
     this.nodeById.clear();
     this.solved = false;
+    this._batching = false;
     this.nodeRadius = initialTier.radius;
     this.fontSize = initialTier.font;
     this.simulation.nodes(this.nodes);
@@ -89,6 +91,27 @@
   };
 
   /**
+   * Call before adding several nodes back-to-back (Reveal Answer, or
+   * replaying a saved session on load) so they can settle together as a
+   * group instead of each one freezing the previous ones in place before
+   * physics ever gets a chance to spread them apart. Without this, a
+   * burst of addNode() calls with no render in between (nothing paints
+   * between synchronous statements) pins each new node's neighbors at
+   * their raw, unsettled spawn position — visible overlap, not just
+   * tight spacing. Normal one-at-a-time play never hits this, since
+   * there's a real pause between each typed word.
+   */
+  GraphView.prototype.beginBatch = function () {
+    this._pinAll(); // freeze whatever already existed before this batch
+    this._batching = true;
+  };
+
+  GraphView.prototype.endBatch = function () {
+    this._batching = false;
+    this.simulation.alpha(0.8).restart();
+  };
+
+  /**
    * @param {number} id - stable word-graph index
    * @param {string} word
    * @param {Object} [opts]
@@ -100,7 +123,14 @@
     opts = opts || {};
     if (this.nodeById.has(id)) return;
 
-    this._pinAll();
+    // Outside a batch, pin everything already on the board before adding
+    // this one node, so reheating only moves the new arrival. Inside a
+    // batch, beginBatch() already did this once for the pre-batch state —
+    // nodes added earlier in the same batch stay free so the whole group
+    // can settle together (see beginBatch's doc comment).
+    if (!this._batching) {
+      this._pinAll();
+    }
 
     var newTier = BubbleTheme.tierForCount(this.nodes.length + 1);
     var tierChanged = newTier.radius !== this.nodeRadius;
@@ -138,7 +168,10 @@
 
     this.simulation.nodes(this.nodes);
     this.simulation.force('link').links(this.links);
-    this.simulation.alpha(tierChanged ? 0.8 : 0.55).restart();
+
+    if (!this._batching) {
+      this.simulation.alpha(tierChanged ? 0.8 : 0.55).restart();
+    }
   };
 
   /**

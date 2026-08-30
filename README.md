@@ -162,6 +162,13 @@ visual distinction from a solved card.
 
 ## Visual design
 
+The Perfect/Par/Words stats row (`.ww-stats-row`/`.ww-stat` in
+`word-web.css`) uses the same classes on both the live page and inside
+the tutorial modal — the value size was bumped noticeably (from 11px to
+20px, label stays smaller for hierarchy) after review found it too small
+to read comfortably in either place. One CSS change fixed both, since
+they share the class rather than each having their own copy.
+
 Bubble and thread rendering — gradients, drop shadows, the double-ring
 "stamp" treatment on target words, and the curved corkboard-thread edges
 (a quadratic bezier with a perpendicular bow, not a straight line) — all
@@ -228,6 +235,25 @@ non-overlapping spot near its parent), then every node gets pinned (`fx`/`fy`
 set) so it stops moving. Adding a new node re-pins everything else first, so
 only the new node (and merges between existing pinned nodes, which don't
 move at all) animate.
+
+**That per-node pinning has a real failure mode: bursts.** Reveal Answer
+and replaying a saved session on load both add several nodes back-to-back
+with no render in between (nothing paints between synchronous statements
+in a browser). Left unguarded, each addition in the burst pins everything
+added *so far in the same burst* at its raw, unsettled spawn position —
+visible overlap, not just tight spacing, since physics never gets a
+chance to spread that group apart. Normal one-at-a-time play never hits
+this; typing a word takes hundreds of milliseconds at minimum, and
+animation frames render every ~16ms, so there's always time to settle
+between submissions. `GraphView.beginBatch()`/`endBatch()` fix this:
+`app.js` wraps both burst call sites (`revealAnswer()`, the replay loop
+in `loadDailyPuzzle()`) so the whole group of new nodes settles together
+before anything gets pinned, instead of pinning progressively as each one
+lands. Verified with the closest-pair distance between every node after
+a burst add, across 15 trials with unseeded randomness, run to full
+settle (alpha below the simulation's own stop threshold, same as a real
+page would reach) — worst case 72px between centers against a ~66px
+overlap threshold at the largest bubble tier, every trial.
 
 Two related fixes: a continuous bounds-clamping force keeps nodes inside
 the board on every tick, not just when they're first placed (mutual
@@ -298,6 +324,29 @@ Redesign layer (new for this pass):
 - A stale previous-day save (`dayNumber: 1` when the real day is later)
   was confirmed to be ignored — a fresh puzzle loads rather than
   incorrectly resuming.
+
+Post-launch fixes (from actually playing the shipped redesign, not
+review alone — the clustering bug specifically could never have shown up
+in a static mockup, only in live play):
+- Reproduced the burst-add clustering bug first, on the exact scenario
+  that causes it (several `addNode()` calls with no ticks in between —
+  what `revealAnswer()` and the replay-on-load path both do), confirming
+  it before writing a fix for it: closest pair landed 28px apart against
+  a ~66px no-overlap threshold.
+- After the `beginBatch()`/`endBatch()` fix, re-ran the same reproduction
+  across 15 trials with unseeded randomness, each run to full settle
+  (alpha below the simulation's own stop threshold) — worst case 72px,
+  every trial.
+- Re-ran the original `GraphView` regression suite (node/link counts,
+  bridging, solved-state styling, tier transitions, bounds clamping,
+  `reset()`) to confirm the batching change didn't disturb anything else.
+- Also tried dispatching several normal single-word submissions with no
+  delay between them, purely out of caution — this did reproduce
+  clustering too, but isn't a realistic concern: typing a 5-letter word
+  takes hundreds of milliseconds at minimum even for a fast typist, and
+  animation frames render roughly every 16ms, so real play always has
+  time to settle between submissions. Noted rather than "fixed," since
+  there's nothing to fix that a human could actually trigger.
 
 ## Open items / not done here
 
