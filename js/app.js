@@ -443,12 +443,24 @@ function addOptimalAnswerToBoard() {
       accent = null;
     }
 
+function trackShare(action) {
+  if (window.goatcounter && window.goatcounter.count) {
+    window.goatcounter.count({
+      path: 'share-' + action,
+      title: 'Word Web share: ' + action,
+      event: true
+    });
+  }
+}
+
+
     var canvas = RMLP.renderShareCard({ title: title, stat: stat, cells: cells, url: GAME_URL, accent: accent });
     els.shareCanvasWrap.innerHTML = '';
     els.shareCanvasWrap.appendChild(canvas);
     els.sharePanel.hidden = false;
 
     els.shareCopyImageBtn.onclick = async function () {
+        trackShare('copy-image');
       try {
         await RMLP.copyShareCardImage(canvas);
         els.shareStatus.textContent = 'Image copied to clipboard.';
@@ -457,6 +469,7 @@ function addOptimalAnswerToBoard() {
       }
     };
     els.shareCopyTextBtn.onclick = async function () {
+        trackShare('copy-text');
       var text = RMLP.shareCardText({ title: title, stat: stat, cells: cells, url: GAME_URL });
       try {
         await navigator.clipboard.writeText(text);
@@ -466,6 +479,7 @@ function addOptimalAnswerToBoard() {
       }
     };
     els.shareDownloadBtn.onclick = function () {
+        trackShare('download');
       RMLP.downloadShareCard(canvas, 'word-web.png');
     };
   }
