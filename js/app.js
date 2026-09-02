@@ -330,14 +330,70 @@
     if (allConnected) {
       solved = true;
       graphView.markSolved();
-      els.boardStatus.textContent = 'Solved! All three words are connected.';
       els.wordInput.disabled = true;
       els.wordSubmitBtn.disabled = true;
       els.revealBtn.disabled = true;
-      updateDayLabel();
-      showSharePanel();
+      if (submittedWords.length === perfectWords) {
+        els.boardStatus.textContent = 'Perfect! All three words are connected.';
+        updateDayLabel();
+        showSharePanel();
+    } else {
+      revealOptimalAnswerAfterSolve();
     }
   }
+}
+
+function revealOptimalAnswerAfterSolve() {
+  addOptimalAnswerToBoard();
+
+  els.boardStatus.textContent =
+    'Solved! The perfect solution is shown in rust.';
+
+  updateDayLabel();
+  updateStats();
+  showSharePanel();
+  persistState();
+}
+
+
+
+function addOptimalAnswerToBoard() {
+  var treeNodes = SteinerSolver.reconstructOptimalTreeK3(
+    graph.adjacency,
+    puzzle.targetIndices
+  );
+
+  var remaining = treeNodes.filter(function (idx) {
+    return !webIndices.has(idx);
+  });
+
+  var batching = remaining.length > 0;
+  if (batching) graphView.beginBatch();
+
+  var guard = 0;
+
+  while (remaining.length && guard++ < 1000) {
+    var progressed = false;
+
+    for (var i = 0; i < remaining.length; i++) {
+      var idx = remaining[i];
+      var attach = findAttachPoints(idx);
+
+      if (attach.length > 0) {
+        commitNewWord(idx, graph.wordAt(idx), attach, true);
+        revealedWords.push(idx);
+        remaining.splice(i, 1);
+        progressed = true;
+        break;
+      }
+    }
+
+    if (!progressed) break;
+  }
+
+  if (batching) graphView.endBatch();
+}
+
 
   /**
    * Adds every word from the optimal solution the player hadn't already
@@ -347,39 +403,15 @@
    */
   function revealAnswer() {
     if (solved || revealed) return;
-    var treeNodes = SteinerSolver.reconstructOptimalTreeK3(graph.adjacency, puzzle.targetIndices);
-    var remaining = treeNodes.filter(function (idx) { return !webIndices.has(idx); });
-
-    // Several nodes can land in one go here -- batch them (see
-    // GraphView.beginBatch) so they settle together instead of each one
-    // pinning the last before it ever gets to spread out.
-    var batching = remaining.length > 0;
-    if (batching) graphView.beginBatch();
-
-    var guard = 0;
-    while (remaining.length && guard++ < 1000) {
-      var progressed = false;
-      for (var i = 0; i < remaining.length; i++) {
-        var idx = remaining[i];
-        var attach = findAttachPoints(idx);
-        if (attach.length > 0) {
-          commitNewWord(idx, graph.wordAt(idx), attach, true);
-          revealedWords.push(idx);
-          remaining.splice(i, 1);
-          progressed = true;
-          break;
-        }
-      }
-      if (!progressed) break;
-    }
-
-    if (batching) graphView.endBatch();
+    addOptimalAnswerToBoard();
 
     revealed = true;
+
     els.wordInput.disabled = true;
     els.wordSubmitBtn.disabled = true;
     els.revealBtn.disabled = true;
     els.boardStatus.textContent = 'Answer revealed.';
+
     updateDayLabel();
     updateStats();
     showSharePanel();
