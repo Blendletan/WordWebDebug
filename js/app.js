@@ -391,6 +391,37 @@ function addOptimalAnswerToBoard() {
     if (!progressed) break;
   }
 
+  // The player's web may already be one connected component, so the normal
+  // attachment rule above can omit edges needed to make the solver's chosen
+  // optimal solution visually obvious.  Draw a spanning tree using only the
+  // nodes in that optimal solution.
+  var optimalSet = new Set(treeNodes);
+  var visited = new Set();
+  var queue = [puzzle.targetIndices[0]];
+  visited.add(puzzle.targetIndices[0]);
+
+  while (queue.length) {
+    var u = queue.shift();
+    var neighbours = graph.adjacency[u];
+
+    for (var j = 0; j < neighbours.length; j++) {
+      var v = neighbours[j];
+
+      if (!optimalSet.has(v) || visited.has(v)) continue;
+
+      visited.add(v);
+      queue.push(v);
+
+      var key = edgeKey(u, v);
+
+      if (!edgeSet.has(key)) {
+        edgeSet.add(key);
+        graphView.addLinkBetweenExisting(u, v);
+        union(u, v);
+      }
+    }
+  }
+
   if (batching) graphView.endBatch();
 }
 
