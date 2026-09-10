@@ -121,8 +121,9 @@ After a solve or reveal, the completion area should be able to contain, in prior
 3. secondary share actions;
 4. Listdle rating/review CTA;
 5. future “play another puzzle” / puzzle-network CTA;
-6. email notification signup;
-7. voluntary support CTA.
+6. voluntary support CTA;
+
+Email notification signup is a deferred final milestone. If it is implemented later, place it between the puzzle-network and voluntary-support CTAs.
 
 This ordering may be adjusted slightly for visual clarity, but **sharing and another puzzle outrank monetization asks**.
 
@@ -226,13 +227,16 @@ The page should still look like a coherent retro puzzle publication.
 - Completion/share UX.
 - Native share progressive enhancement.
 - Listdle rating/review CTA.
-- Newsletter signup UI and safe external configuration hook.
 - More-puzzles/cross-promotion area.
 - Making voluntary support visible in the post-game state.
 - De-emphasizing the reveal control without removing it.
 - GoatCounter events for the above.
 - Small README updates documenting new behavior/configuration.
 - Regression testing.
+
+### Deferred until the owner supplies configuration
+
+- Newsletter signup UI and its safe external configuration hook. This is the final milestone and does not block the current pass.
 
 ### Explicitly out of scope unless the owner asks
 
@@ -295,7 +299,7 @@ For native sharing, test both branches:
 - supported/available;
 - unsupported or rejected, with fallback behavior.
 
-For newsletter configuration, test both branches:
+When the deferred newsletter milestone is implemented, test both branches:
 
 - configured;
 - unconfigured, where no broken signup UI should be exposed.
