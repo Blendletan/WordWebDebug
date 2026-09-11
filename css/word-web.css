@@ -293,8 +293,13 @@ body {
 .ww-share-panel[hidden] { display: none; }
 .ww-share-panel canvas { max-width: 100%; height: auto; border-radius: var(--rmlp-radius-md); }
 .ww-share-actions { display: flex; gap: var(--rmlp-space-2); justify-content: center; margin-top: var(--rmlp-space-3); flex-wrap: wrap; }
-.ww-share-status { font-size: var(--rmlp-text-xs); color: var(--rmlp-ink-muted); margin-top: var(--rmlp-space-2); min-height: 1.2em; }
+.ww-share-actions-primary { margin-top: var(--rmlp-space-4); }
+.ww-share-actions-secondary { margin-top: var(--rmlp-space-2); }
+.ww-share-primary { min-width: 180px; padding: 10px 22px; font-size: var(--rmlp-text-base); }
+.ww-share-actions-secondary .ww-btn { padding: 7px 11px; font-size: var(--rmlp-text-xs); }
+.ww-share-status { font-size: var(--rmlp-text-xs); color: var(--rmlp-ink-muted); margin-top: var(--rmlp-space-2); min-height: 1.2em; white-space: pre-line; overflow-wrap: anywhere; }
 
 @media (max-width: 480px) {
   .ww-stats-row { gap: var(--rmlp-space-4); }
+  .ww-share-primary { width: 100%; }
 }

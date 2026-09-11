@@ -80,6 +80,7 @@
     revealConfirmBtn: document.getElementById('reveal-confirm-btn'),
     sharePanel: document.getElementById('share-panel'),
     shareCanvasWrap: document.getElementById('share-canvas-wrap'),
+    shareNativeBtn: document.getElementById('share-native-btn'),
     shareCopyImageBtn: document.getElementById('share-copy-image-btn'),
     shareCopyTextBtn: document.getElementById('share-copy-text-btn'),
     shareDownloadBtn: document.getElementById('share-download-btn'),
@@ -494,6 +495,46 @@ function addOptimalAnswerToBoard() {
     els.shareCanvasWrap.appendChild(canvas);
     els.sharePanel.hidden = false;
 
+    var shareText = RMLP.shareCardText({ title: title, stat: stat, cells: cells, url: GAME_URL });
+
+    async function copyShareText(successMessage) {
+      trackEvent('share-copy-text');
+      try {
+        await navigator.clipboard.writeText(shareText);
+        els.shareStatus.textContent = successMessage || 'Text copied to clipboard.';
+      } catch (e) {
+        els.shareStatus.textContent = shareText;
+      }
+    }
+
+    els.shareNativeBtn.onclick = async function () {
+      var shareData = { title: title, text: shareText };
+      var canShare = typeof navigator.share === 'function';
+
+      if (canShare && typeof navigator.canShare === 'function') {
+        try {
+          canShare = navigator.canShare(shareData);
+        } catch (e) {
+          canShare = false;
+        }
+      }
+
+      if (!canShare) {
+        await copyShareText('Result copied to clipboard.');
+        return;
+      }
+
+      els.shareStatus.textContent = '';
+      try {
+        await navigator.share(shareData);
+        trackEvent('share-native');
+        els.shareStatus.textContent = 'Result shared.';
+      } catch (e) {
+        if (e && e.name === 'AbortError') return;
+        await copyShareText('Sharing did not open, so your result was copied instead.');
+      }
+    };
+
     els.shareCopyImageBtn.onclick = async function () {
       trackEvent('share-copy-image');
       try {
@@ -504,14 +545,7 @@ function addOptimalAnswerToBoard() {
       }
     };
     els.shareCopyTextBtn.onclick = async function () {
-      trackEvent('share-copy-text');
-      var text = RMLP.shareCardText({ title: title, stat: stat, cells: cells, url: GAME_URL });
-      try {
-        await navigator.clipboard.writeText(text);
-        els.shareStatus.textContent = 'Text copied to clipboard.';
-      } catch (e) {
-        els.shareStatus.textContent = text;
-      }
+      await copyShareText();
     };
     els.shareDownloadBtn.onclick = function () {
       trackEvent('share-download');
