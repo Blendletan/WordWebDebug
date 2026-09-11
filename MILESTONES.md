@@ -12,6 +12,7 @@ variant. The product requirements and exact destinations are in
 | 1. Text-only inline sharing | Complete | Share behavior verified locally |
 | 2. Completion modal and dialog accessibility | Complete | All terminal and dialog paths verified |
 | 3. Complete footer and Listdle selection | Complete | Owner selected Light |
+| 3.5. Readability and type-scale correction | In progress | Owner approves enlarged presentation |
 | 4. Documentation and final regression | Not started | Local and deployed staging checks pass |
 
 Update this table as work progresses.
@@ -157,6 +158,50 @@ Light, then remove the unselected variant and retain only the chosen official as
 
 The owner-selected four-item footer is complete, accessible, responsive, measurable,
 and contains no temporary comparison markup.
+
+---
+
+## Milestone 3.5 — Readability and type-scale correction
+
+### Objective
+
+Make the entire interface comfortable to read at 100% browser zoom while preserving its
+sparse layout and existing hierarchy. Secondary controls and footer links should read at
+a regular speaking voice rather than disappearing into the page.
+
+### Files
+
+- `css/rmlp-tokens.css`
+- `css/word-web.css`
+- `MILESTONES.md`
+
+### Work
+
+1. Raise the typography scale to a 15px minimum, 17px routine labels and controls,
+   19px supporting text, and 24px prominent values and entered words.
+2. Set How to play and Reveal Answer to 17px with at least 46px targets and retain a
+   clean mobile wrap.
+3. Set the day hint, entry feedback, and stat labels to 17px and stat values to 24px.
+4. Set footer text to 17px in the normal ink color, enlarge link targets to 54px, and
+   display the selected Light badge at 50px while keeping the footer at the page bottom.
+5. Preserve a calm desktop row where space permits and a clear stacked mobile layout.
+6. Do not change gameplay behavior, graph layout, scoring, persistence, sharing, or
+   analytics.
+
+### Verify before commit and push
+
+- Compare before-and-after captures at representative desktop and 390×844 mobile sizes.
+- No visible functional interface text outside the graph is smaller than 15px.
+- The page is comfortably readable at 100% zoom, with clear focus indicators and touch
+  targets.
+- The page has no horizontal overflow at 390px or at a narrower representative viewport.
+- The footer is clearly presented without competing with the puzzle.
+- Game, dialog, sharing, and footer behavior remain unchanged.
+
+### Completion gate
+
+The owner approves the enlarged desktop and mobile presentation, all readability and
+responsive checks pass, and the page no longer requires browser zoom for ordinary use.
 
 ---
 
