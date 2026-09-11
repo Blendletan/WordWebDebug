@@ -1,78 +1,89 @@
-# AGENTS.md
+# AGENTS.md — Word Web staging
 
-Guidance for AI coding agents (Codex, etc.) working in this repository.
+Instructions for coding agents working in this repository.
 
-## Project overview
-WordWeb is a browser-based word puzzle game (RMLP brand) — a Steiner-tree puzzle where
-players connect three target words via single-letter substitutions, scored against a
-mathematically optimal par computed via the Dreyfus-Wagner algorithm. It's a static site
-hosted on GitHub Pages, and separately mirrored (manually, not auto-synced) to itch.io —
-that mirror lives outside this repo and won't pick up changes here on its own.
+## Repository and deployment
 
-Stack: vanilla HTML/CSS/JS, D3.js for the force-directed puzzle graph, a shared
-`bubble-theme.js` module for brand tokens. No framework. Check for a `package.json` or
-build config before assuming one exists — this may be a plain static site with no build
-step at all.
+WordWebDebug is the staging repository for Word Web. It is a static GitHub Pages site
+built with vanilla HTML, CSS, JavaScript, and D3.js. It has no application server,
+framework, package manager, or build step.
 
-Brand system — reuse these, don't invent new ones:
-- Fonts: Fraunces (display), Libre Franklin (UI), Courier Prime (mono)
-- Palette: cream, ink, red, teal, gold
-- Source of truth for exact values: the shared theme module (`bubble-theme.js` or
-  equivalent) — locate it and read the actual values rather than guessing hex codes.
+GitHub Pages automatically deploys this repository's `main` branch. A push to `main`
+changes the public staging site. The production Word Web repository is separate and is
+not automatically synchronized; do not modify or deploy production unless the owner
+asks.
 
-## Setup / running locally
-1. Look for a README, `package.json`, or Makefile first and follow whatever's documented
-   there.
-2. If there's no build step, serve the directory with any static file server (e.g.
-   `python3 -m http.server`) and open it in a browser.
-3. Confirm which branch GitHub Pages actually deploys from (`main` vs. `gh-pages` vs. a
-   `/docs` folder) before assuming — don't guess at the publish path.
-4. Do not introduce a bundler, framework, or new dependency to accomplish UI changes
-   unless explicitly asked. This is a deliberately lightweight static site.
+## Required reading
 
-## Current task
-Read `wordweb-ui-refresh-spec.md` before making changes — that's the actual task brief
-(simplify the share flow, trim the completion modal, redesign the footer, add a Listdle
-badge, optionally link to SpellSweep). This file covers general repo conventions; that
-one covers what to build. If it isn't in this repo, ask for it before starting.
+Before changing code, read:
 
-## Scope boundaries — do not touch
-- Puzzle-solving / par logic (Dreyfus-Wagner / graph computation)
-- D3 graph rendering and interaction code
-- Daily puzzle seeding / date logic
-- localStorage persistence / save-data format
-- Tutorial slideshow content or logic
+1. `README.md` for current implementation facts and invariants.
+2. `wordweb-ui-refresh-spec.md` for the current product requirements.
+3. `MILESTONES.md` for implementation order and verification gates.
 
-This is a UI-only pass. If a requested change seems to require touching any of the
-above, stop and flag it instead of proceeding.
+The refresh spec defines what to build. The milestone file defines how the work is
+sequenced. If either conflicts with the current code or with direct owner instructions,
+stop and resolve the conflict rather than guessing.
 
-## Design conventions for UI work
-- One ask per moment — never stack multiple asks (share / rate / support / cross-promo)
-  into a single button, modal, or line.
-- Secondary links (feedback, support, rate, cross-promo) are plain text or small
-  icon+label pairs, all the same visual weight as each other. No color-shouting buttons,
-  no banners competing with the puzzle.
-- Any modal is easy to dismiss (X, tap-outside, Esc), never blocks replay, never
-  re-appears in a way that reads as nagging.
-- When in doubt, prefer removing an option over adding a setting/toggle for it — fewer
-  choices, not more configuration.
+## Important files
 
-## Commit conventions
-- Scope commits to one piece of the spec at a time (e.g. "remove download/image share",
-  "redesign footer", "add Listdle badge") rather than one large commit.
-- Minimal diffs — don't reformat or refactor unrelated code while you're in a file.
-- If something in the spec's "Open questions" list is still unresolved (Listdle slug,
-  badge variant, etc.), leave a clear `TODO:` comment at the relevant line rather than
-  inventing a value, and call it out in the PR description.
+- `index.html` — page shell, controls, dialogs, completion panel, footer, script loading.
+- `css/rmlp-tokens.css` — page-level brand tokens.
+- `css/word-web.css` — page and component styling.
+- `js/app.js` — game state, persistence, completion flow, sharing, and UI wiring.
+- `js/rmlp-share-card.js` — canvas result preview and plain-text result generation.
+- `js/graph-view.js` — D3 board rendering and layout.
+- `js/bubble-theme.js` — graph-specific bubble and thread drawing.
+- `js/tutorial.js` — tutorial steps and rendering.
+- `js/lib/*` — word graph, exact solver, and deterministic puzzle generator.
+- `data/words.json` — production word graph.
 
-## Verification before calling this done
-No automated test suite is expected for this kind of change — verify manually:
-- [ ] Solve a puzzle end-to-end; the completion state still shows correctly
-- [ ] Share action works (native share sheet where available, clipboard fallback
-      otherwise) and produces the same text that was generated before this change
-- [ ] Download button and image-share are fully gone — no dead code, no orphaned assets
-- [ ] Footer renders correctly at both desktop and mobile widths (wrap/stack, tap
-      targets ≥44px)
-- [ ] Listdle badge links to the correct URL and renders at the intended size
-- [ ] Tutorial, graph, and daily-puzzle behavior are unchanged
-- [ ] Everything in the acceptance checklist in `wordweb-ui-refresh-spec.md` is checked off
+## Game invariants
+
+Do not change these during UI work:
+
+- A standard puzzle has exactly three target words.
+- Player-entered words are five letters and must exist in the production word graph.
+- A submitted word must differ by one letter from something already in the web.
+- One submitted word may connect multiple distinct components.
+- Score is submitted-word count, not edge count.
+- There is no undo.
+- `perfectWords` is the solver-derived optimum.
+- `parWords = perfectWords + PAR_BONUS`.
+- Reveal is terminal, adds the optimal solution visually, and does not inflate the
+  player's submitted-word score.
+- The daily puzzle is determined by the player's local calendar date.
+- Same-day progress and terminal state restore from `localStorage`.
+- The game must remain a static GitHub Pages site.
+
+## Current-pass boundaries
+
+Do not change solver, word-graph, puzzle-generation, graph-layout, scoring, daily-seed,
+word-list, or persistence-format code. Do not change tutorial content or Reveal Answer
+placement/behavior. Narrow modal lifecycle changes needed for accessibility may touch
+the tutorial or reveal dialog wrappers, but not their content or game behavior.
+
+## Working rules
+
+- Make small, targeted edits; do not reformat unrelated code.
+- Reuse `css/rmlp-tokens.css`; do not invent colors or fonts.
+- Do not add a framework, dependency, bundler, package manager, or build step.
+- Reuse existing result generation and state logic rather than duplicating it.
+- Keep DOM lookups with the existing `els` object where practical.
+- Analytics must fail silently and must never block copying, closing, gameplay, or
+  navigation.
+- Preserve unrelated owner changes in the working tree.
+
+## Milestone workflow
+
+Work in the order in `MILESTONES.md`. For each milestone:
+
+1. Inspect the affected implementation.
+2. Make the smallest coherent change.
+3. Run the milestone's local checks, including browser checks where specified.
+4. Commit only that completed milestone.
+5. Push it to staging `main` and report what changed and what passed.
+6. Resolve any owner decision gate before beginning or pushing dependent work.
+
+Do not push partial or untested work. The final regression matrix in `MILESTONES.md` is
+required even if milestone-specific checks have already passed.

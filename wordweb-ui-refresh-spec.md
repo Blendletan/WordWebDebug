@@ -1,91 +1,128 @@
-# WordWeb UI Refresh — Implementation Spec
-
-**Site:** https://blendletan.github.io/WordWeb
-**Stack:** static GitHub Pages site — vanilla HTML/JS/CSS, D3.js force-directed graph, shared `bubble-theme.js` module for brand tokens (Fraunces / Libre Franklin / Courier Prime; cream / ink / red / teal / gold palette).
+# Word Web UI Refresh — Specification
 
 ## Goal
-Simplify the share flow, add a Listdle rating badge, and make the support/feedback links genuinely visible — all without the page feeling promotional. No changes to puzzle logic, scoring, or the graph itself. Locate the relevant files yourself (likely `index.html` plus whatever JS module currently builds the share UI and page footer) and adapt this spec to match what's actually there.
 
-## Design principles (apply throughout)
-1. **One ask per moment.** Never stack multiple asks (share + rate + support + cross-promo) into a single button, modal, or line.
-2. **Calm, not loud.** Secondary links (feedback / support / rate / cross-promo) are plain text or small icon+label pairs, all the same visual weight as each other — no color-shouting buttons, no banners competing with the puzzle.
-3. **Respect the dismiss.** Any modal is easy to close (X, tap-outside, Esc), never blocks replay, never re-appears in a way that reads as nagging.
-4. **Reuse existing brand tokens.** Fonts, palette, and `bubble-theme.js` values only — no new colors or fonts introduced for this work.
-5. **Fewer choices, higher completion.** This is the reasoning behind simplifying share below — same logic as the rest of the design work, applied to UI.
+Make sharing one obvious text action, add a small completion-time nudge to share, and
+make feedback, Listdle, SpellSweep, and voluntary support visible without making the
+puzzle feel promotional.
 
----
+This is a UI-only change. Puzzle logic, scoring, graph behavior, daily selection,
+persistence data, tutorial content, and Reveal Answer behavior remain unchanged.
 
-## 1. Simplify the share flow
-- Remove the download-image option entirely.
-- Remove the share-image option entirely.
-- Replace with a single **"Share result"** action:
-  - If `navigator.share` is available, use it, passing the existing generated share-text string as the payload.
-  - Otherwise, copy that same text to the clipboard and show a small inline confirmation (e.g. "Copied!") — no separate modal or page for the fallback.
-- Reuse whatever share-text template already exists (par, words used, puzzle #/date, link). This is a plumbing simplification — fewer buttons, one code path — not a copy rewrite, unless Robert separately wants to revisit the text itself.
+## Product requirements
 
-## 2. Completion / result modal
-- If a "you solved it" overlay already exists, trim its contents. If it doesn't exist yet, this section describes what to add.
-- Contents, and only these:
-  - The result (par vs. actual, words used — whatever's already shown elsewhere in the UI)
-  - One primary button: **Share result**
-  - A close control (X and/or tap-outside)
-- Do **not** add support / feedback / rate / cross-promo links inside this modal. The footer (below) carries those, is visible the instant the modal closes, and doesn't need to be duplicated here.
-- Style: match the existing tutorial-slideshow modal treatment (corner radius, cream/ink palette). Prefer a soft fade/scale-in over an abrupt pop.
+### Text-only sharing
 
-## 3. Footer redesign — visibility, not volume
-Replace the current inline, sentence-style footer with an evenly-weighted row of links, in this order:
+- Keep the existing inline completion panel and canvas result preview.
+- Replace `Copy image`, `Copy text`, and `Download` with one primary button labelled
+  **Share result**.
+- The button copies the existing `RMLP.shareCardText()` result. Do not rewrite the title,
+  result wording, emoji cells, or production URL.
+- Do not use `navigator.share`, a native share sheet, image sharing, or image download.
+- On successful copy, announce `Copied! Paste it anywhere.` in an inline polite live
+  region.
+- If clipboard copying fails, show the generated text in a labelled, selectable form for
+  manual copying. Do not claim success.
+- The inline panel and completion modal must use the same result data and copy function.
+- Retain canvas rendering for the preview. Remove image-copy/download controls, event
+  wiring, and helpers that become unused.
 
-1. **Send feedback** — existing mailto link
-2. **Rate on Listdle** — badge, see §4
-3. **Support me ☕** — existing PayPal.me link
-4. *(optional)* **More puzzles: SpellSweep** — see §5
+### Completion share nudge
 
-Layout:
-- Desktop: one horizontal row, evenly spaced, with clear gaps or thin dividers between items — not embedded in a paragraph of prose.
-- Mobile: stack or wrap to two rows; keep tap targets comfortably sized (44px+ tall).
-- Add a thin top rule above this row, separating it from the puzzle content as its own footer zone.
-- Same type size/weight across all items (Libre Franklin, existing small/UI text size). If you add an icon to one, add icons to all — consistency over any single item standing out.
-- Color: teal or ink for these links. Reserve red/gold for in-puzzle feedback, where they already carry meaning.
+Add a modal after:
 
-## 4. Listdle badge
-Official embed reference: https://listdle.com/badge/ (three variants: Dark — Listdle's own recommended default, Light, Compact).
+- a live perfect solve;
+- a live non-perfect solve, after the optimal solution is shown;
+- a live confirmed reveal.
 
-- Use the **Compact** (32px) variant sized to match the footer's line height, so it sits at the same visual weight as the plain-text links beside it. Check it visually against the actual cream background before locking in — swap to Dark or Light if Compact looks off.
-- Snippet shape:
-  ```html
-  <a href="https://listdle.com/games/YOUR-GAME-SLUG" target="_blank" rel="noopener">
-    <img src="https://listdle.com/badges/rate-on-listdle-compact.svg" alt="Rate on Listdle" height="32">
-  </a>
-  ```
-- **Blocker:** needs Robert's actual Listdle slug for WordWeb. If WordWeb isn't listed yet, submit at https://listdle.com/submit first, then drop the slug in once approved.
+The modal is additive: the inline completion panel renders underneath it and remains
+available after dismissal. Do not open the modal when a completed game is restored from
+storage, and do not change the persistence format to accomplish this.
 
-## 5. Optional: SpellSweep cross-link
-- Only include if it doesn't push the footer past 4 items or make the row read as a promo bar.
-- Same treatment as every other footer link — same size, same weight, no thumbnail, no "NEW" tag.
-- Label: "More puzzles: SpellSweep" or "Try SpellSweep →", linking to https://blendletan.github.io/SpellSweep/.
-- Do not place this in the completion modal — that moment is about the puzzle just solved, not a pitch for a different game.
+The modal contains only:
 
-## 6. Explicit don'ts
-- No modal that fires on every completion with escalating asks.
-- No auto-playing sound or attention-grabbing animation on the completion modal.
-- No more than one strongly-styled button anywhere in this flow ("Share result"). Everything else is a plain link.
-- No stacking rate + support + cross-promo into the same modal or line.
-- No new colors or fonts outside the existing brand system.
+- the existing result title and status used by the result card;
+- one **Share result** button;
+- copy confirmation or manual-copy fallback;
+- a close button.
 
----
+Copying does not close the modal. It closes through its button, backdrop click, or
+Escape. Move focus into it, keep keyboard focus inside while open, and restore focus
+sensibly on close. Use only a restrained fade/scale entrance and respect
+`prefers-reduced-motion`.
 
-## Open questions for Robert (resolve before or during implementation)
-- [ ] Listdle slug for WordWeb — has it been submitted / approved yet?
-- [ ] Badge variant: Compact vs. Dark vs. Light — confirm after a visual check on the live page.
-- [ ] Keep "Support me ☕" wording as-is, or update?
-- [ ] Include the SpellSweep link now, or hold it for a later pass?
-- [ ] Does a completion modal already exist in the current code, or is this net-new?
+Do not put feedback, Listdle, SpellSweep, support, or any other ask in the modal.
 
-## Acceptance checklist
-- [ ] Download button removed
-- [ ] Image-share removed; single "Share result" action remains, with clipboard/native-share fallback
-- [ ] Completion modal (if present) contains only: result, one Share button, close control
-- [ ] Footer redesigned as an evenly-weighted link row with a top divider, legible and tappable on mobile
-- [ ] Listdle badge present and linking to the correct game page
-- [ ] No new colors or fonts introduced
-- [ ] Nothing blocks replay or reappears in a way that reads as nagging
+### Footer
+
+Replace the sentence-style footer with separate links in this order:
+
+1. **Send feedback** — `mailto:robertparkinson@shaw.ca`
+2. **Rate on Listdle** — `https://listdle.com/games/word-web`
+3. **More puzzles: SpellSweep** — `https://blendletan.github.io/SpellSweep/`
+4. **Support more puzzles ☕** — `https://www.paypal.com/paypalme/AceBlender`
+
+Use a thin top rule and the existing Libre Franklin UI type with teal or ink link colors.
+The footer should form one calm row on desktop and wrap or stack cleanly on mobile.
+Interactive targets must be at least 44px tall, and the page must not overflow
+horizontally.
+
+Open Listdle, SpellSweep, and PayPal in new tabs with appropriate `rel` attributes. The
+email link should retain normal mail-client behavior.
+
+Use the official Listdle badge. Before the footer milestone is committed, show the owner
+desktop and mobile comparisons of:
+
+- Compact, 32px:
+  `https://listdle.com/badges/rate-on-listdle-compact.svg`
+- Light, 40px:
+  `https://listdle.com/badges/rate-on-listdle-light.svg`
+
+Wait for the owner to choose. Ship only the selected variant, with
+`alt="Rate on Listdle"`.
+
+### Analytics
+
+Use the existing fail-silent `trackEvent()` helper:
+
+- `puzzle-solved` — existing live solve event
+- `puzzle-revealed` — existing live reveal event
+- `share-copy-text` — successful programmatic text copy
+- `feedback-click` — feedback activation
+- `listdle-click` — Listdle activation
+- `more-puzzles-click` — SpellSweep activation
+- `support-click` — PayPal activation
+
+A missing, blocked, or throwing GoatCounter must not interfere with copying, modal
+controls, gameplay, or navigation. Do not emit `share-copy-text` when programmatic copy
+failed and the manual fallback was shown.
+
+### Accessibility and visual constraints
+
+- Use semantic buttons, anchors, dialog labels, and live regions.
+- Retain visible keyboard focus and do not depend on hover.
+- Prevent background interaction while a modal is open.
+- Apply close-button, backdrop, Escape, focus-containment, and focus-restoration behavior
+  consistently to the completion, tutorial, and reveal-confirmation dialogs.
+- Do not change tutorial content or Reveal Answer behavior while improving dialog
+  lifecycle handling.
+- Use variables from `css/rmlp-tokens.css`; introduce no new fonts or colors.
+- Keep the board and entry interaction visually dominant.
+- Do not add a framework, dependency, build system, rating popup, or donation popup.
+
+## Acceptance criteria
+
+- [ ] The canvas result preview remains in the inline completion panel.
+- [ ] Inline and modal sharing use one identical text-copy implementation.
+- [ ] Image-copy, download, and native-share UI/code are absent from the active flow.
+- [ ] Copy success is announced; copy failure exposes selectable text without false
+      success.
+- [ ] The modal appears after live perfect solve, non-perfect solve, and reveal only.
+- [ ] Restored completed games show the inline panel without reopening the modal.
+- [ ] Closing the modal leaves the inline completion panel available.
+- [ ] All three dialogs meet the agreed dismissal and keyboard behavior.
+- [ ] Footer order, destinations, analytics, and new-tab behavior are correct.
+- [ ] The owner chooses the Listdle variant after seeing both in context.
+- [ ] Desktop and narrow mobile layouts are usable without horizontal overflow.
+- [ ] Blocked analytics and clipboard failure do not break the page.
+- [ ] Reveal Answer and all core-game invariants remain unchanged.
