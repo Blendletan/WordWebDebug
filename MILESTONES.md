@@ -11,7 +11,7 @@ variant. The product requirements and exact destinations are in
 | --- | --- | --- |
 | 1. Text-only inline sharing | Complete | Share behavior verified locally |
 | 2. Completion modal and dialog accessibility | Complete | All terminal and dialog paths verified |
-| 3. Complete footer and Listdle selection | Not started | Owner chooses Compact or Light |
+| 3. Complete footer and Listdle selection | Complete | Owner selected Light |
 | 4. Documentation and final regression | Not started | Local and deployed staging checks pass |
 
 Update this table as work progresses.

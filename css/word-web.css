@@ -306,12 +306,34 @@ body.ww-modal-open { overflow: hidden; }
 
 /* Footer */
 .ww-footer {
-  text-align: center;
+  max-width: 760px;
+  margin: var(--rmlp-space-6) auto 0;
+  padding: var(--rmlp-space-3) var(--rmlp-space-4) var(--rmlp-space-4);
+  border-top: 1px solid var(--rmlp-rule);
   font-size: var(--rmlp-text-xs);
   color: var(--rmlp-ink-muted);
-  margin-top: var(--rmlp-space-6);
 }
-.ww-footer a { color: var(--rmlp-accent-teal); }
+.ww-footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--rmlp-space-2);
+  flex-wrap: wrap;
+}
+.ww-footer-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px var(--rmlp-space-2);
+  color: var(--rmlp-ink-muted);
+  text-align: center;
+  text-decoration: none;
+}
+.ww-footer-link:hover { color: var(--rmlp-accent-teal); text-decoration: underline; }
+.ww-footer-link:focus-visible { outline: 2px solid var(--rmlp-accent-teal); outline-offset: 2px; }
+.ww-listdle-link { padding-block: 6px; }
+.ww-listdle-badge { display: block; width: auto; height: 40px; }
 
 /* Share panel */
 .ww-share-panel {
@@ -351,4 +373,6 @@ body.ww-modal-open { overflow: hidden; }
 
 @media (max-width: 480px) {
   .ww-stats-row { gap: var(--rmlp-space-4); }
+  .ww-footer-links { display: grid; grid-template-columns: 1fr; gap: 0; }
+  .ww-footer-link { width: 100%; }
 }

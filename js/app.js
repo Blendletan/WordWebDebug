@@ -97,7 +97,11 @@
     boardStatus: document.getElementById('board-status'),
     boardLoading: document.getElementById('board-loading'),
     graphSvg: document.getElementById('graph-svg'),
-    dayLabel: document.getElementById('day-label')
+    dayLabel: document.getElementById('day-label'),
+    feedbackLink: document.getElementById('feedback-link'),
+    listdleLink: document.getElementById('listdle-link'),
+    morePuzzlesLink: document.getElementById('more-puzzles-link'),
+    supportLink: document.getElementById('support-link')
   };
 
   var graphView = new GraphView('#graph-svg', { width: 720, height: 480 });
@@ -693,6 +697,10 @@ function addOptimalAnswerToBoard() {
     document.addEventListener('keydown', handleDialogKeydown);
 
     els.howToPlayBtn.addEventListener('click', openTutorial);
+    els.feedbackLink.addEventListener('click', function () { trackEvent('feedback-click'); });
+    els.listdleLink.addEventListener('click', function () { trackEvent('listdle-click'); });
+    els.morePuzzlesLink.addEventListener('click', function () { trackEvent('more-puzzles-click'); });
+    els.supportLink.addEventListener('click', function () { trackEvent('support-click'); });
     els.wordForm.addEventListener('submit', handleSubmit);
     els.shareResultBtn.addEventListener('click', function () {
       copyShareText(shareResultText, {
