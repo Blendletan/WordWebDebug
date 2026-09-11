@@ -77,6 +77,22 @@
     </div>
   </section>
 
+  <div class="ww-modal-backdrop" id="completion-modal" hidden>
+    <div class="ww-modal ww-completion-modal" role="dialog" aria-modal="true" aria-labelledby="completion-modal-title" aria-describedby="completion-modal-stat">
+      <button class="ww-modal-close" id="completion-modal-close-btn" type="button" aria-label="Close">&times;</button>
+      <h2 class="ww-modal-title" id="completion-modal-title"></h2>
+      <p class="ww-completion-stat" id="completion-modal-stat"></p>
+      <div class="ww-share-actions">
+        <button class="ww-btn ww-btn-accent" id="completion-share-result-btn" type="button">Share result</button>
+      </div>
+      <p class="ww-share-status" id="completion-share-status" aria-live="polite"></p>
+      <div class="ww-share-manual" id="completion-share-manual-copy" hidden>
+        <label for="completion-share-manual-text">Copy your result manually</label>
+        <textarea class="ww-share-manual-text" id="completion-share-manual-text" rows="5" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
   <div class="ww-modal-backdrop" id="how-to-play-modal" hidden>
     <div class="ww-modal ww-tutorial-modal" role="dialog" aria-modal="true" aria-labelledby="how-to-play-title">
       <button class="ww-modal-close" id="close-modal-btn" type="button" aria-label="Close">&times;</button>

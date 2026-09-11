@@ -62,6 +62,8 @@
   }
 
   var els = {
+    appRoot: document.querySelector('.ww-app'),
+    footer: document.querySelector('.ww-footer'),
     perfectValue: document.getElementById('perfect-value'),
     parValue: document.getElementById('par-value'),
     wordsValue: document.getElementById('words-value'),
@@ -84,6 +86,14 @@
     shareStatus: document.getElementById('share-status'),
     shareManualCopy: document.getElementById('share-manual-copy'),
     shareManualText: document.getElementById('share-manual-text'),
+    completionModal: document.getElementById('completion-modal'),
+    completionModalCloseBtn: document.getElementById('completion-modal-close-btn'),
+    completionModalTitle: document.getElementById('completion-modal-title'),
+    completionModalStat: document.getElementById('completion-modal-stat'),
+    completionShareResultBtn: document.getElementById('completion-share-result-btn'),
+    completionShareStatus: document.getElementById('completion-share-status'),
+    completionShareManualCopy: document.getElementById('completion-share-manual-copy'),
+    completionShareManualText: document.getElementById('completion-share-manual-text'),
     boardStatus: document.getElementById('board-status'),
     boardLoading: document.getElementById('board-loading'),
     graphSvg: document.getElementById('graph-svg'),
@@ -104,7 +114,11 @@
   var revealed = false;
   var submittedWords = [];
   var revealedWords = [];
+  var shareResultData = null;
   var shareResultText = '';
+  var activeDialog = null;
+  var activeDialogReturnFocus = null;
+  var modalInertElements = [];
 
   function find(x) {
     while (unionParent.get(x) !== x) x = unionParent.get(x);
@@ -126,6 +140,107 @@
         });
       }
     } catch (e) { /* Analytics must never interrupt gameplay or navigation. */ }
+  }
+
+  function getFocusableElements(modal) {
+    var selector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), ' +
+      'textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), [contenteditable="true"]';
+    return Array.prototype.filter.call(modal.querySelectorAll(selector), function (element) {
+      var style = window.getComputedStyle(element);
+      return !element.closest('[hidden]') && style.display !== 'none' && style.visibility !== 'hidden';
+    });
+  }
+
+  function lockModalBackground(modal) {
+    var backgroundElements = Array.prototype.slice.call(els.appRoot.children);
+    if (els.footer) backgroundElements.push(els.footer);
+    modalInertElements = backgroundElements.filter(function (element) {
+      return element !== modal && !element.hasAttribute('inert');
+    });
+    modalInertElements.forEach(function (element) { element.setAttribute('inert', ''); });
+    document.body.classList.add('ww-modal-open');
+  }
+
+  function unlockModalBackground() {
+    modalInertElements.forEach(function (element) { element.removeAttribute('inert'); });
+    modalInertElements = [];
+    document.body.classList.remove('ww-modal-open');
+  }
+
+  function restoreDialogFocus(preferredTarget) {
+    if (preferredTarget && document.contains(preferredTarget) && !preferredTarget.disabled) {
+      preferredTarget.focus();
+    } else if (!els.wordInput.disabled) {
+      els.wordInput.focus();
+    } else if (!els.sharePanel.hidden) {
+      els.shareResultBtn.focus();
+    } else {
+      els.howToPlayBtn.focus();
+    }
+  }
+
+  function closeDialog(modal, restoreFocus) {
+    modal.hidden = true;
+    if (activeDialog !== modal) return;
+
+    var returnFocus = activeDialogReturnFocus;
+    activeDialog = null;
+    activeDialogReturnFocus = null;
+    unlockModalBackground();
+    if (restoreFocus !== false) restoreDialogFocus(returnFocus);
+  }
+
+  function openDialog(modal, options) {
+    options = options || {};
+    if (activeDialog === modal) return;
+    if (activeDialog && activeDialog !== modal) closeDialog(activeDialog, false);
+
+    activeDialog = modal;
+    activeDialogReturnFocus = options.returnFocus || document.activeElement;
+    modal.hidden = false;
+    lockModalBackground(modal);
+
+    window.requestAnimationFrame(function () {
+      if (activeDialog !== modal) return;
+      var initialFocus = options.initialFocus || getFocusableElements(modal)[0];
+      if (initialFocus) initialFocus.focus();
+    });
+  }
+
+  function handleDialogKeydown(event) {
+    if (!activeDialog) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeDialog(activeDialog);
+      return;
+    }
+    if (event.key !== 'Tab') return;
+
+    var focusable = getFocusableElements(activeDialog);
+    if (focusable.length === 0) {
+      event.preventDefault();
+      return;
+    }
+
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    var focusIsOutside = !activeDialog.contains(document.activeElement);
+    if (event.shiftKey && (document.activeElement === first || focusIsOutside)) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (document.activeElement === last || focusIsOutside)) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function wireDialogDismissal(modal, buttons) {
+    buttons.forEach(function (button) {
+      button.addEventListener('click', function () { closeDialog(modal); });
+    });
+    modal.addEventListener('click', function (event) {
+      if (event.target === modal) closeDialog(modal);
+    });
   }
 
   function persistState() {
@@ -258,9 +373,17 @@
 
     graphView.reset();
     els.sharePanel.hidden = true;
-    els.shareStatus.textContent = '';
-    els.shareManualCopy.hidden = true;
-    els.shareManualText.value = '';
+    resetCopyUI({
+      status: els.shareStatus,
+      manualCopy: els.shareManualCopy,
+      manualText: els.shareManualText
+    });
+    resetCopyUI({
+      status: els.completionShareStatus,
+      manualCopy: els.completionShareManualCopy,
+      manualText: els.completionShareManualText
+    });
+    shareResultData = null;
     shareResultText = '';
     els.boardStatus.textContent = '';
     els.wordInput.disabled = false;
@@ -355,23 +478,25 @@
         els.boardStatus.textContent = 'Perfect! All three words are connected.';
         updateDayLabel();
         showSharePanel();
-    } else {
-      revealOptimalAnswerAfterSolve();
+        if (trackOutcome) openCompletionModal();
+      } else {
+        revealOptimalAnswerAfterSolve(trackOutcome);
+      }
     }
   }
-}
 
-function revealOptimalAnswerAfterSolve() {
-  addOptimalAnswerToBoard();
+  function revealOptimalAnswerAfterSolve(openCompletion) {
+    addOptimalAnswerToBoard();
 
-  els.boardStatus.textContent =
-    'Solved! The perfect solution is shown in rust.';
+    els.boardStatus.textContent =
+      'Solved! The perfect solution is shown in rust.';
 
-  updateDayLabel();
-  updateStats();
-  showSharePanel();
-  persistState();
-}
+    updateDayLabel();
+    updateStats();
+    showSharePanel();
+    persistState();
+    if (openCompletion) openCompletionModal();
+  }
 
 
 
@@ -466,6 +591,7 @@ function addOptimalAnswerToBoard() {
     updateStats();
     showSharePanel();
     persistState();
+    openCompletionModal();
   }
 
   function getShareResultData() {
@@ -496,6 +622,12 @@ function addOptimalAnswerToBoard() {
     return { title: title, stat: stat, cells: cells, url: GAME_URL, accent: accent };
   }
 
+  function resetCopyUI(copyUI) {
+    copyUI.status.textContent = '';
+    copyUI.manualCopy.hidden = true;
+    copyUI.manualText.value = '';
+  }
+
   async function copyShareText(text, copyUI) {
     copyUI.status.textContent = '';
     try {
@@ -519,24 +651,48 @@ function addOptimalAnswerToBoard() {
   }
 
   function showSharePanel() {
-    var resultData = getShareResultData();
-    shareResultText = RMLP.shareCardText(resultData);
+    shareResultData = getShareResultData();
+    shareResultText = RMLP.shareCardText(shareResultData);
+    resetCopyUI({
+      status: els.shareStatus,
+      manualCopy: els.shareManualCopy,
+      manualText: els.shareManualText
+    });
 
-    var canvas = RMLP.renderShareCard(resultData);
+    var canvas = RMLP.renderShareCard(shareResultData);
     els.shareCanvasWrap.innerHTML = '';
     els.shareCanvasWrap.appendChild(canvas);
     els.sharePanel.hidden = false;
   }
 
+  function openCompletionModal() {
+    if (!shareResultData) return;
+    els.completionModalTitle.textContent = shareResultData.title;
+    els.completionModalStat.textContent = shareResultData.stat;
+    resetCopyUI({
+      status: els.completionShareStatus,
+      manualCopy: els.completionShareManualCopy,
+      manualText: els.completionShareManualText
+    });
+    openDialog(els.completionModal, {
+      initialFocus: els.completionShareResultBtn,
+      returnFocus: els.shareResultBtn
+    });
+  }
+
   function openTutorial() {
     Tutorial.reset();
-    els.modal.hidden = false;
+    openDialog(els.modal, { initialFocus: els.closeModalBtn });
   }
 
   function wireStaticUI() {
+    Tutorial.setCloseHandler(function () { closeDialog(els.modal); });
+    wireDialogDismissal(els.modal, [els.closeModalBtn]);
+    wireDialogDismissal(els.revealConfirmModal, [els.revealConfirmCloseBtn, els.revealCancelBtn]);
+    wireDialogDismissal(els.completionModal, [els.completionModalCloseBtn]);
+    document.addEventListener('keydown', handleDialogKeydown);
+
     els.howToPlayBtn.addEventListener('click', openTutorial);
-    els.closeModalBtn.addEventListener('click', function () { els.modal.hidden = true; });
-    els.modal.addEventListener('click', function (e) { if (e.target === els.modal) els.modal.hidden = true; });
     els.wordForm.addEventListener('submit', handleSubmit);
     els.shareResultBtn.addEventListener('click', function () {
       copyShareText(shareResultText, {
@@ -545,12 +701,24 @@ function addOptimalAnswerToBoard() {
         manualText: els.shareManualText
       });
     });
+    els.completionShareResultBtn.addEventListener('click', function () {
+      copyShareText(shareResultText, {
+        status: els.completionShareStatus,
+        manualCopy: els.completionShareManualCopy,
+        manualText: els.completionShareManualText
+      });
+    });
 
-    els.revealBtn.addEventListener('click', function () { els.revealConfirmModal.hidden = false; });
-    els.revealConfirmCloseBtn.addEventListener('click', function () { els.revealConfirmModal.hidden = true; });
-    els.revealCancelBtn.addEventListener('click', function () { els.revealConfirmModal.hidden = true; });
-    els.revealConfirmBtn.addEventListener('click', function () { els.revealConfirmModal.hidden = true; revealAnswer(); });
-    els.revealConfirmModal.addEventListener('click', function (e) { if (e.target === els.revealConfirmModal) els.revealConfirmModal.hidden = true; });
+    els.revealBtn.addEventListener('click', function () {
+      openDialog(els.revealConfirmModal, {
+        initialFocus: els.revealCancelBtn,
+        returnFocus: els.revealBtn
+      });
+    });
+    els.revealConfirmBtn.addEventListener('click', function () {
+      closeDialog(els.revealConfirmModal, false);
+      revealAnswer();
+    });
   }
 
   async function init() {
