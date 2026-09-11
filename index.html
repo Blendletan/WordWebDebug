@@ -68,11 +68,13 @@
     <p class="ww-hint">Share your result</p>
     <div id="share-canvas-wrap"></div>
     <div class="ww-share-actions">
-      <button class="ww-btn" id="share-copy-image-btn" type="button">Copy image</button>
-      <button class="ww-btn" id="share-copy-text-btn" type="button">Copy text</button>
-      <button class="ww-btn" id="share-download-btn" type="button">Download</button>
+      <button class="ww-btn ww-btn-accent" id="share-result-btn" type="button">Share result</button>
     </div>
-    <p class="ww-share-status" id="share-status"></p>
+    <p class="ww-share-status" id="share-status" aria-live="polite"></p>
+    <div class="ww-share-manual" id="share-manual-copy" hidden>
+      <label for="share-manual-text">Copy your result manually</label>
+      <textarea class="ww-share-manual-text" id="share-manual-text" rows="5" readonly></textarea>
+    </div>
   </section>
 
   <div class="ww-modal-backdrop" id="how-to-play-modal" hidden>

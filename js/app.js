@@ -80,10 +80,10 @@
     revealConfirmBtn: document.getElementById('reveal-confirm-btn'),
     sharePanel: document.getElementById('share-panel'),
     shareCanvasWrap: document.getElementById('share-canvas-wrap'),
-    shareCopyImageBtn: document.getElementById('share-copy-image-btn'),
-    shareCopyTextBtn: document.getElementById('share-copy-text-btn'),
-    shareDownloadBtn: document.getElementById('share-download-btn'),
+    shareResultBtn: document.getElementById('share-result-btn'),
     shareStatus: document.getElementById('share-status'),
+    shareManualCopy: document.getElementById('share-manual-copy'),
+    shareManualText: document.getElementById('share-manual-text'),
     boardStatus: document.getElementById('board-status'),
     boardLoading: document.getElementById('board-loading'),
     graphSvg: document.getElementById('graph-svg'),
@@ -104,6 +104,7 @@
   var revealed = false;
   var submittedWords = [];
   var revealedWords = [];
+  var shareResultText = '';
 
   function find(x) {
     while (unionParent.get(x) !== x) x = unionParent.get(x);
@@ -258,6 +259,9 @@
     graphView.reset();
     els.sharePanel.hidden = true;
     els.shareStatus.textContent = '';
+    els.shareManualCopy.hidden = true;
+    els.shareManualText.value = '';
+    shareResultText = '';
     els.boardStatus.textContent = '';
     els.wordInput.disabled = false;
     els.wordSubmitBtn.disabled = false;
@@ -464,7 +468,7 @@ function addOptimalAnswerToBoard() {
     persistState();
   }
 
-  function showSharePanel() {
+  function getShareResultData() {
     var title = 'Word Web #' + dayNumber;
     var wordsAdded = submittedWords.length;
     var stat, cells, accent;
@@ -489,34 +493,39 @@ function addOptimalAnswerToBoard() {
       accent = null;
     }
 
-    var canvas = RMLP.renderShareCard({ title: title, stat: stat, cells: cells, url: GAME_URL, accent: accent });
+    return { title: title, stat: stat, cells: cells, url: GAME_URL, accent: accent };
+  }
+
+  async function copyShareText(text, copyUI) {
+    copyUI.status.textContent = '';
+    try {
+      if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+        throw new Error('Clipboard text copy is not supported in this browser.');
+      }
+      await navigator.clipboard.writeText(text);
+      copyUI.manualCopy.hidden = true;
+      copyUI.manualText.value = '';
+      copyUI.status.textContent = 'Copied! Paste it anywhere.';
+      trackEvent('share-copy-text');
+      return true;
+    } catch (e) {
+      copyUI.manualText.value = text;
+      copyUI.manualCopy.hidden = false;
+      copyUI.status.textContent = 'Could not copy automatically. Copy your result below.';
+      copyUI.manualText.focus();
+      copyUI.manualText.select();
+      return false;
+    }
+  }
+
+  function showSharePanel() {
+    var resultData = getShareResultData();
+    shareResultText = RMLP.shareCardText(resultData);
+
+    var canvas = RMLP.renderShareCard(resultData);
     els.shareCanvasWrap.innerHTML = '';
     els.shareCanvasWrap.appendChild(canvas);
     els.sharePanel.hidden = false;
-
-    els.shareCopyImageBtn.onclick = async function () {
-      trackEvent('share-copy-image');
-      try {
-        await RMLP.copyShareCardImage(canvas);
-        els.shareStatus.textContent = 'Image copied to clipboard.';
-      } catch (e) {
-        els.shareStatus.textContent = 'Could not copy image in this browser — try Download instead.';
-      }
-    };
-    els.shareCopyTextBtn.onclick = async function () {
-      trackEvent('share-copy-text');
-      var text = RMLP.shareCardText({ title: title, stat: stat, cells: cells, url: GAME_URL });
-      try {
-        await navigator.clipboard.writeText(text);
-        els.shareStatus.textContent = 'Text copied to clipboard.';
-      } catch (e) {
-        els.shareStatus.textContent = text;
-      }
-    };
-    els.shareDownloadBtn.onclick = function () {
-      trackEvent('share-download');
-      RMLP.downloadShareCard(canvas, 'word-web.png');
-    };
   }
 
   function openTutorial() {
@@ -529,6 +538,13 @@ function addOptimalAnswerToBoard() {
     els.closeModalBtn.addEventListener('click', function () { els.modal.hidden = true; });
     els.modal.addEventListener('click', function (e) { if (e.target === els.modal) els.modal.hidden = true; });
     els.wordForm.addEventListener('submit', handleSubmit);
+    els.shareResultBtn.addEventListener('click', function () {
+      copyShareText(shareResultText, {
+        status: els.shareStatus,
+        manualCopy: els.shareManualCopy,
+        manualText: els.shareManualText
+      });
+    });
 
     els.revealBtn.addEventListener('click', function () { els.revealConfirmModal.hidden = false; });
     els.revealConfirmCloseBtn.addEventListener('click', function () { els.revealConfirmModal.hidden = true; });
