@@ -115,6 +115,18 @@
   }
   function edgeKey(a, b) { return a < b ? a + ':' + b : b + ':' + a; }
 
+  function trackEvent(eventName) {
+    try {
+      if (window.goatcounter && typeof window.goatcounter.count === 'function') {
+        window.goatcounter.count({
+          path: eventName,
+          title: 'Word Web: ' + eventName,
+          event: true
+        });
+      }
+    } catch (e) { /* Analytics must never interrupt gameplay or navigation. */ }
+  }
+
   function persistState() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -217,7 +229,8 @@
       updateStats();
       showSharePanel();
     } else {
-      checkSolved();
+      // Rebuild the completed UI without counting a page reload as a new solve.
+      checkSolved(false);
     }
 
     if (hasWordsToReplay) graphView.endBatch();
@@ -312,7 +325,7 @@
     els.wordInput.focus();
 
     updateStats();
-    checkSolved();
+    checkSolved(true);
     persistState();
   }
 
@@ -322,13 +335,14 @@
     els.wordsValue.textContent = submittedWords.length;
   }
 
-  function checkSolved() {
+  function checkSolved(trackOutcome) {
     if (revealed || solved) return;
     var targets = puzzle.targetIndices;
     var root0 = find(targets[0]);
     var allConnected = targets.every(function (t) { return find(t) === root0; });
     if (allConnected) {
       solved = true;
+      if (trackOutcome) trackEvent('puzzle-solved');
       graphView.markSolved();
       els.wordInput.disabled = true;
       els.wordSubmitBtn.disabled = true;
@@ -437,6 +451,7 @@ function addOptimalAnswerToBoard() {
     addOptimalAnswerToBoard();
 
     revealed = true;
+    trackEvent('puzzle-revealed');
 
     els.wordInput.disabled = true;
     els.wordSubmitBtn.disabled = true;
@@ -474,24 +489,13 @@ function addOptimalAnswerToBoard() {
       accent = null;
     }
 
-function trackShare(action) {
-  if (window.goatcounter && window.goatcounter.count) {
-    window.goatcounter.count({
-      path: 'share-' + action,
-      title: 'Word Web share: ' + action,
-      event: true
-    });
-  }
-}
-
-
     var canvas = RMLP.renderShareCard({ title: title, stat: stat, cells: cells, url: GAME_URL, accent: accent });
     els.shareCanvasWrap.innerHTML = '';
     els.shareCanvasWrap.appendChild(canvas);
     els.sharePanel.hidden = false;
 
     els.shareCopyImageBtn.onclick = async function () {
-        trackShare('copy-image');
+      trackEvent('share-copy-image');
       try {
         await RMLP.copyShareCardImage(canvas);
         els.shareStatus.textContent = 'Image copied to clipboard.';
@@ -500,7 +504,7 @@ function trackShare(action) {
       }
     };
     els.shareCopyTextBtn.onclick = async function () {
-        trackShare('copy-text');
+      trackEvent('share-copy-text');
       var text = RMLP.shareCardText({ title: title, stat: stat, cells: cells, url: GAME_URL });
       try {
         await navigator.clipboard.writeText(text);
@@ -510,7 +514,7 @@ function trackShare(action) {
       }
     };
     els.shareDownloadBtn.onclick = function () {
-        trackShare('download');
+      trackEvent('share-download');
       RMLP.downloadShareCard(canvas, 'word-web.png');
     };
   }
