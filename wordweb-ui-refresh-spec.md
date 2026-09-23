@@ -53,6 +53,12 @@ sensibly on close. Use only a restrained fade/scale entrance and respect
 
 Do not put feedback, Listdle, SpellSweep, support, or any other ask in the modal.
 
+### Publisher branding
+
+Show the RMLP mark beside the publisher label **RMLP puzzle** above the Word Web title,
+matching the SpellSweep and Beeline publisher lockup. Treat the mark as decorative and
+give the combined lockup the accessible label `An RMLP puzzle`.
+
 ### Footer
 
 Replace the sentence-style footer with separate links in this order:
@@ -60,15 +66,14 @@ Replace the sentence-style footer with separate links in this order:
 1. **Send feedback** — `mailto:robertparkinson@shaw.ca`
 2. **Rate on Listdle** — `https://listdle.com/games/word-web`
 3. **More puzzles: SpellSweep** — `https://blendletan.github.io/SpellSweep/`
-4. **Support more puzzles ☕** — `https://www.paypal.com/paypalme/AceBlender`
 
 Use a thin top rule and the existing Libre Franklin UI type with teal or ink link colors.
 The footer should form one calm row on desktop and wrap or stack cleanly on mobile.
 Interactive targets must be at least 44px tall, and the page must not overflow
 horizontally.
 
-Open Listdle, SpellSweep, and PayPal in new tabs with appropriate `rel` attributes. The
-email link should retain normal mail-client behavior.
+Open Listdle and SpellSweep in new tabs with appropriate `rel` attributes. The email
+link should retain normal mail-client behavior.
 
 Use the official Listdle badge. Before the footer milestone is committed, show the owner
 desktop and mobile comparisons of:
@@ -81,6 +86,14 @@ desktop and mobile comparisons of:
 Wait for the owner to choose. Ship only the selected variant, with
 `alt="Rate on Listdle"`.
 
+### Support widget
+
+Use Ko-fi's official floating overlay widget for the `randomlittlepuzzles` account. Its
+button text is **Support More Puzzles**, with Ko-fi blue `#00b9fe` and white text. Keep
+the widget clear of footer content on narrow screens and prevent its iframe from causing
+horizontal overflow. If the third-party script is unavailable, the game and remaining
+navigation must continue to work normally.
+
 ### Analytics
 
 Use the existing fail-silent `trackEvent()` helper:
@@ -91,7 +104,7 @@ Use the existing fail-silent `trackEvent()` helper:
 - `feedback-click` — feedback activation
 - `listdle-click` — Listdle activation
 - `more-puzzles-click` — SpellSweep activation
-- `support-click` — PayPal activation
+- `support-click` — Ko-fi widget opened
 
 A missing, blocked, or throwing GoatCounter must not interfere with copying, modal
 controls, gameplay, or navigation. Do not emit `share-copy-text` when programmatic copy
@@ -108,7 +121,8 @@ failed and the manual fallback was shown.
   lifecycle handling.
 - Use variables from `css/rmlp-tokens.css`; introduce no new fonts or colors.
 - Keep the board and entry interaction visually dominant.
-- Do not add a framework, dependency, build system, rating popup, or donation popup.
+- Do not add a framework, dependency, build system, rating popup, or donation UI beyond
+  the official Ko-fi overlay.
 
 ## Acceptance criteria
 
@@ -122,6 +136,9 @@ failed and the manual fallback was shown.
 - [ ] Closing the modal leaves the inline completion panel available.
 - [ ] All three dialogs meet the agreed dismissal and keyboard behavior.
 - [ ] Footer order, destinations, analytics, and new-tab behavior are correct.
+- [ ] The RMLP publisher lockup matches the other RMLP puzzles.
+- [ ] The Ko-fi overlay opens correctly and emits `support-click` without breaking play
+      when Ko-fi or GoatCounter is unavailable.
 - [ ] The owner chooses the Listdle variant after seeing both in context.
 - [ ] Desktop and narrow mobile layouts are usable without horizontal overflow.
 - [ ] Blocked analytics and clipboard failure do not break the page.

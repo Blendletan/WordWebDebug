@@ -59,6 +59,17 @@ Page styling should use the variables in `css/rmlp-tokens.css`. Bubble gradients
 shadows, rings, and thread curves live in `js/bubble-theme.js` because both the live
 board and tutorial render through that module.
 
+## Branding, footer, and support
+
+The header presents the RMLP mark with the publisher label `RMLP puzzle` above the Word
+Web title. The footer contains feedback, the selected Light Listdle badge, and the link
+to SpellSweep. Voluntary support uses Ko-fi's floating overlay widget for the
+`randomlittlepuzzles` account rather than a footer link.
+
+Footer activations and Ko-fi widget openings are recorded through the fail-silent
+GoatCounter helper in `js/app.js`. The Ko-fi opening event retains the existing
+`support-click` path for reporting continuity.
+
 ## Daily puzzle and persistence
 
 The puzzle is deterministic from the player's local calendar date. Day numbering and

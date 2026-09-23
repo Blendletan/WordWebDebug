@@ -13,6 +13,7 @@ variant. The product requirements and exact destinations are in
 | 2. Completion modal and dialog accessibility | Complete | All terminal and dialog paths verified |
 | 3. Complete footer and Listdle selection | Complete | Owner selected Light |
 | 3.5. Readability and type-scale correction | In progress | Owner approves enlarged presentation |
+| 3.6. RMLP publisher lockup and Ko-fi support | Complete | Local and deployed checks pass |
 | 4. Documentation and final regression | Not started | Local and deployed staging checks pass |
 
 Update this table as work progresses.
@@ -117,7 +118,7 @@ Reveal Answer, tutorial content, persistence, and game logic remain unchanged.
 
 ### Objective
 
-Replace the feedback sentence with the complete four-item footer and select the Listdle
+Replace the feedback sentence with the complete three-item footer and select the Listdle
 badge by reviewing it in context.
 
 ### Files
@@ -128,12 +129,12 @@ badge by reviewing it in context.
 
 ### Work before the owner decision
 
-1. Build the semantic footer in final order: feedback, Listdle, SpellSweep, support.
+1. Build the semantic footer in final order: feedback, Listdle, SpellSweep.
 2. Add the confirmed URLs, labels, new-tab behavior, and `rel` attributes from the spec.
 3. Add the top rule, existing typography/colors, desktop row, mobile wrapping, visible
    focus, and 44px minimum targets.
-4. Add fail-silent `feedback-click`, `listdle-click`, `more-puzzles-click`, and
-   `support-click` tracking without preventing navigation.
+4. Add fail-silent `feedback-click`, `listdle-click`, and `more-puzzles-click` tracking
+   without preventing navigation.
 5. Render the Compact Listdle badge and capture desktop and narrow-mobile views.
 6. Render the Light badge at the same viewports and present both comparisons to the
    owner.
@@ -145,7 +146,7 @@ Light, then remove the unselected variant and retain only the chosen official as
 
 ### Verify before commit and push
 
-- Final order is feedback, Listdle, SpellSweep, support.
+- Final order is feedback, Listdle, SpellSweep.
 - Every label, URL, `target`, `rel`, alt text, and event name is correct.
 - Email uses normal mail-client behavior; the other destinations open in new tabs.
 - Missing or throwing GoatCounter prevents no navigation.
@@ -156,7 +157,7 @@ Light, then remove the unselected variant and retain only the chosen official as
 
 ### Completion gate
 
-The owner-selected four-item footer is complete, accessible, responsive, measurable,
+The owner-selected three-item footer is complete, accessible, responsive, measurable,
 and contains no temporary comparison markup.
 
 ---
@@ -205,6 +206,54 @@ responsive checks pass, and the page no longer requires browser zoom for ordinar
 
 ---
 
+## Milestone 3.6 — RMLP publisher lockup and Ko-fi support
+
+### Objective
+
+Match the publisher branding and support treatment used by SpellSweep and Beeline while
+preserving Word Web's existing footer links and GoatCounter reporting continuity.
+
+### Files
+
+- `index.html`
+- `css/word-web.css`
+- `js/app.js`
+- `README.md`
+- `wordweb-ui-refresh-spec.md`
+- `MILESTONES.md`
+
+### Work
+
+1. Replace the standalone header mark with the accessible RMLP publisher lockup used by
+   the other puzzles.
+2. Replace the footer support link with Ko-fi's official floating overlay widget for
+   `randomlittlepuzzles` with the shared **Support More Puzzles** presentation.
+3. Prevent the widget from overflowing narrow viewports or covering mobile footer
+   content.
+4. Track widget openings as `support-click`, counting an opening rather than a close,
+   and keep missing or throwing analytics fail-silent.
+5. Update current-state documentation for the new branding, support destination, and
+   analytics behavior.
+
+### Verify before commit and push
+
+- The RMLP mark and `RMLP puzzle` label appear above the Word Web title.
+- Feedback, Listdle, and SpellSweep remain in the footer with their existing behavior.
+- The legacy support link and obsolete `support-link` wiring are absent.
+- The Ko-fi widget loads with the correct account, label, and colors.
+- Opening the widget emits `support-click`; closing it does not emit another event.
+- Missing Ko-fi or GoatCounter code does not interrupt loading or gameplay.
+- Desktop and 390×844 mobile layouts have no horizontal overflow or widget/footer
+  collision.
+
+### Completion gate
+
+The publisher lockup and Ko-fi widget match the other RMLP puzzles, analytics remains
+fail-silent and measurable, documentation is current, and the staging deployment passes
+desktop and mobile checks.
+
+---
+
 ## Milestone 4 — Documentation and final regression
 
 ### Objective
@@ -219,7 +268,7 @@ Update `README.md` only where behavior changed. Record concisely:
 - the single text-sharing action and manual fallback;
 - the canvas as a preview rather than a sharing format;
 - the completion modal's live-only trigger;
-- final footer destinations and selected badge;
+- final footer destinations, selected badge, and Ko-fi support widget;
 - GoatCounter event names;
 - the source locations for public URLs.
 
@@ -248,8 +297,8 @@ change history in current-state files.
    on copy failure, and no automatic modal close.
 6. **Dialogs:** close button, backdrop, Escape, focus containment, focus restoration, and
    reduced-motion behavior for all three dialogs.
-7. **Footer:** all destinations, selected badge, new-tab behavior, keyboard focus, and
-   44px targets.
+7. **Footer and support:** all three footer destinations, selected badge, new-tab
+   behavior, keyboard focus, 44px targets, and the Ko-fi widget.
 8. **Analytics:** agreed events when available; no broken action when GoatCounter is
    missing or throws.
 9. **Responsive layout:** representative desktop and 390×844 mobile views with no
@@ -259,8 +308,8 @@ change history in current-state files.
 ### Deployed staging check
 
 After the milestone is committed and pushed, wait for GitHub Pages and hard-refresh the
-staging page. Exercise one terminal path, both share locations, all four footer
-destinations, and the final desktop/mobile footer.
+staging page. Exercise one terminal path, both share locations, all three footer
+destinations, the Ko-fi widget, and the final desktop/mobile footer.
 
 ### Completion gate
 
