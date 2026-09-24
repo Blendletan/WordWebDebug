@@ -14,6 +14,7 @@ variant. The product requirements and exact destinations are in
 | 3. Complete footer and Listdle selection | Complete | Owner selected Light |
 | 3.5. Readability and type-scale correction | In progress | Owner approves enlarged presentation |
 | 3.6. RMLP publisher lockup and Ko-fi support | Complete | Local and deployed checks pass |
+| 3.7. Short mobile support label | Complete | Mobile and desktop labels verified |
 | 4. Documentation and final regression | Not started | Local and deployed staging checks pass |
 
 Update this table as work progresses.
@@ -251,6 +252,42 @@ preserving Word Web's existing footer links and GoatCounter reporting continuity
 The publisher lockup and Ko-fi widget match the other RMLP puzzles, analytics remains
 fail-silent and measurable, documentation is current, and the staging deployment passes
 desktop and mobile checks.
+
+---
+
+## Milestone 3.7 — Short mobile support label
+
+### Objective
+
+Keep the Ko-fi button label fully visible on phones while retaining the shared desktop
+wording.
+
+### Files
+
+- `index.html`
+- `README.md`
+- `wordweb-ui-refresh-spec.md`
+- `MILESTONES.md`
+
+### Work
+
+1. Choose the Ko-fi label when the page loads using the shared `30rem` breakpoint.
+2. Use **Support us** at `30rem` and narrower.
+3. Continue to use **Support More Puzzles** above `30rem`.
+4. Preserve the widget account, colors, opening behavior, and GoatCounter tracking.
+
+### Verify before commit and push
+
+- A 360px viewport shows **Support us** without clipping.
+- A viewport wider than 480px shows **Support More Puzzles**.
+- The Ko-fi panel still opens for `randomlittlepuzzles`.
+- Opening emits `support-click`; closing does not emit another event.
+- The page has no horizontal overflow or widget/footer collision.
+
+### Completion gate
+
+Both responsive labels render completely, and support and analytics behavior are
+unchanged.
 
 ---
 

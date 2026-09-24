@@ -89,10 +89,11 @@ Wait for the owner to choose. Ship only the selected variant, with
 ### Support widget
 
 Use Ko-fi's official floating overlay widget for the `randomlittlepuzzles` account. Its
-button text is **Support More Puzzles**, with Ko-fi blue `#00b9fe` and white text. Keep
-the widget clear of footer content on narrow screens and prevent its iframe from causing
-horizontal overflow. If the third-party script is unavailable, the game and remaining
-navigation must continue to work normally.
+button text is **Support us** at `30rem` and narrower and **Support More Puzzles** above
+that breakpoint, with Ko-fi blue `#00b9fe` and white text. Choose the label when the page
+loads. Keep the widget clear of footer content on narrow screens and prevent its iframe
+from causing horizontal overflow. If the third-party script is unavailable, the game
+and remaining navigation must continue to work normally.
 
 ### Analytics
 
