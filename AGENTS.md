@@ -58,10 +58,12 @@ Do not change these during UI work:
 
 ## Current-pass boundaries
 
-Do not change solver, word-graph, puzzle-generation, graph-layout, scoring, daily-seed,
-word-list, or persistence-format code. Do not change tutorial content or Reveal Answer
-placement/behavior. Narrow modal lifecycle changes needed for accessibility may touch
-the tutorial or reveal dialog wrappers, but not their content or game behavior.
+Do not change solver, word-graph, puzzle-generation, scoring, daily-seed, word-list, or
+persistence-format code. Graph-layout changes are limited to the overlap prevention and
+manual repositioning work approved in Milestone 3.8. Do not change tutorial content or
+Reveal Answer placement/behavior. Narrow modal lifecycle changes needed for
+accessibility may touch the tutorial or reveal dialog wrappers, but not their content or
+game behavior.
 
 ## Working rules
 

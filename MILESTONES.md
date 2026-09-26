@@ -15,6 +15,7 @@ variant. The product requirements and exact destinations are in
 | 3.5. Readability and type-scale correction | In progress | Owner approves enlarged presentation |
 | 3.6. RMLP publisher lockup and Ko-fi support | Complete | Local and deployed checks pass |
 | 3.7. Short mobile support label | Complete | Mobile and desktop labels verified |
+| 3.8. Bubble overlap prevention and repositioning | Complete | Layout and interaction checks pass |
 | 4. Documentation and final regression | Not started | Local and deployed staging checks pass |
 
 Update this table as work progresses.
@@ -288,6 +289,60 @@ wording.
 
 Both responsive labels render completely, and support and analytics behavior are
 unchanged.
+
+---
+
+## Milestone 3.8 — Bubble overlap prevention and repositioning
+
+### Objective
+
+Make automatic bubble overlap substantially less likely while preserving a stable board,
+and give players direct control when they want to adjust the layout.
+
+### Files
+
+- `index.html`
+- `css/word-web.css`
+- `js/app.js`
+- `js/graph-view.js`
+- `README.md`
+- `wordweb-ui-refresh-spec.md`
+- `MILESTONES.md`
+- `AGENTS.md`
+
+### Work
+
+1. Position new bubbles deterministically using every connected neighbour, board bounds,
+   and the full visible bubble footprint.
+2. Keep nodes that are still settling movable across rapid additions and batch replays;
+   pin the settled result only after an overlap-resolution pass.
+3. Preserve the calm board by leaving already settled nodes fixed outside size-tier
+   transitions.
+4. Add mouse and touch dragging that updates connected threads immediately, clamps the
+   bubble inside the board, and pins it at the released position.
+5. Add focusable bubbles, visible focus, and arrow-key repositioning without changing
+   game state or persistence data.
+
+### Verify before commit and push
+
+- Fresh target bubbles and ordinary additions settle without visual overlap.
+- Rapid additions do not freeze a prior new bubble in an overlapping position.
+- Multi-branch bridge words consider all of their attachment points.
+- Saved-progress replay and optimal-answer reveal batches settle without overlap.
+- The 10-to-11 and 16-to-17 size-tier transitions remain stable and visible.
+- Mouse, touch, and keyboard movement work for target, submitted, and revealed bubbles;
+  threads follow the moved word and the bubble remains inside the board.
+- Manual positions survive later ordinary additions in the same session and reset on a
+  page reload without changing the saved-game format.
+- Desktop and narrow-mobile layouts remain usable without horizontal overflow.
+- Solver, scoring, generation, daily seed, word list, tutorial, and Reveal Answer
+  behavior remain unchanged.
+
+### Completion gate
+
+Automatic placement passes the overlap checks, manual repositioning works across input
+methods, the full regression remains clean, and the milestone is committed and pushed to
+staging `main`.
 
 ---
 

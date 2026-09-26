@@ -6,8 +6,10 @@ Make sharing one obvious text action, add a small completion-time nudge to share
 make feedback, Listdle, SpellSweep, and voluntary support visible without making the
 puzzle feel promotional.
 
-This is a UI-only change. Puzzle logic, scoring, graph behavior, daily selection,
-persistence data, tutorial content, and Reveal Answer behavior remain unchanged.
+This is primarily a UI change. Puzzle logic, scoring, daily selection, persistence data,
+tutorial content, and Reveal Answer behavior remain unchanged. The separately approved
+Milestone 3.8 may change live-board layout and interaction only to reduce overlapping
+bubbles and let players reposition them.
 
 ## Product requirements
 
@@ -144,3 +146,15 @@ failed and the manual fallback was shown.
 - [ ] Desktop and narrow mobile layouts are usable without horizontal overflow.
 - [ ] Blocked analytics and clipboard failure do not break the page.
 - [ ] Reveal Answer and all core-game invariants remain unchanged.
+
+### Board overlap prevention and repositioning
+
+- Prefer clear deterministic positions over random placement when a word is added.
+- Consider every attachment point when positioning a word that bridges components.
+- Do not pin a newly added word before it has had a chance to settle.
+- Keep settled words stable unless a size-tier change requires layout adjustment.
+- Let players drag any live-board word bubble and keep it at the released position.
+- Support touch dragging and keyboard arrow-key repositioning with visible focus.
+- Keep the full visible bubble footprint inside the board and update threads while a
+  bubble moves.
+- Do not persist manual positions or change the saved-game format.
